@@ -82,5 +82,8 @@ https://github.com/user-attachments/assets/df406601-6fb2-4ef1-a05e-25e464fe2947
 | **5. Held - High Position** | Held (`true`) | Fully Clockwise | ~$4095$ | $255$ | Green LED illuminates at 100% full brightness |
 | **6. Released Mid-Operation** | Released (`false`) | Kept at High position | ~$4095$ | `0` | Green LED turns OFF immediately upon button release |
 
+## Conclusion 
+
+The activity successfully demonstrated a modular ESP32 workstation light controller by separating the codebase into distinct readInputs(), processLogic(), and writeOutputs() functions. The active-LOW push button effectively functions as a safety interlock, forcing the PWM output duty cycle to 0 whenever released. When held, the scaleToDuty() function accurately converts the 12-bit ADC potentiometer reading ($0\text{--}4095$) into an 8-bit PWM value ($0\text{--}255$), providing smooth and reliable brightness control. 
 
 
