@@ -30,38 +30,21 @@ An ESP32-based workstation light controller built using C++ and PlatformIO/Ardui
 
 ---
 
-## Hardware Connections & Pinout
-
-### Point-to-Point Wiring Map
-```text
-[ LAPTOP / PC ] ─── (USB Cable) ───► [ ESP32 Micro-USB Port ]
-
-[ ESP32 GPIO 4  ] ─── (Jumper Wire) ───► [ Push Button Leg 1 ]
-[ ESP32 GND     ] ─── (Black Wire) ────► [ Push Button Leg 2 & Breadboard GND Rail ]
-
-[ ESP32 GPIO 34 ] ─── (Yellow Wire) ───► [ Potentiometer Wiper (Center) ]
-[ ESP32 3.3V    ] ─── (Red Wire) ──────► [ Potentiometer VCC (Pin 1) ]
-[ Breadboard GND] ─── (Black Wire) ────► [ Potentiometer GND (Pin 3) ]
-
-[ ESP32 GPIO 2  ] ─── (Jumper Wire) ───► [ 220Ω Resistor ] ───► [ Red Status LED (+) ]
-[ ESP32 GPIO 18 ] ─── (Green Wire) ────► [ 220Ω Resistor ] ───► [ Green PWM LED (+) ]
-[ Breadboard GND] ───────────────────────────────────────────► [ LED Cathodes (-) ]
-```
-## Expected vs. Observed Behavior Table
-
-| Test Case / Condition | Button State (`isEnabled`) | Knob Position | Expected Raw ADC (`rawPotValue`) | Expected PWM Duty (`appliedDuty`) | Expected LED Behavior | Observed Hardware Behavior |
-| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **1. Reset with Button Released** | Released (`false`) | Any Position | $0 - 4095$ | `0` | Both LEDs OFF | Red and Green LEDs stay completely OFF. |
-| **2. Rotate Knob While Released** | Released (`false`) | Low $\rightarrow$ High | $0 \rightarrow 4095$ | `0` | Both LEDs OFF | Rotating knob has no effect; output stays OFF. |
-| **3. Hold Button (Low Position)** | Held (`true`) | Fully Counter-Clockwise | $0 - 100$ | $0 - 6$ | Status LED ON; Dimming LED OFF/Dim | Red LED ON; Green LED OFF or barely visible. |
-| **4. Hold Button (Mid Position)** | Held (`true`) | Centered (~50%) | ~$2047$ | ~$127$ | Status LED ON; Dimming LED Medium | Red LED ON; Green LED lit at ~50% brightness. |
-| **5. Hold Button (High Position)**| Held (`true`) | Fully Clockwise | $4095$ | $255$ | Status LED ON; Dimming LED Full | Red LED ON; Green LED lit at 100% brightness. |
-| **6. Release Button Mid-Operation**| Released (`false`) | Kept at High Position | $4095$ | `0` | Both LEDs turn OFF instantly | Both Red and Green LEDs turn OFF immediately. |
-
 ## Demonstration Documentation
 
 
 https://github.com/user-attachments/assets/e5ec5955-ee45-41bf-81e4-ad48b0a3af9e
+
+## Expected vs. Observed Behavior Table
+
+## 📊 Expected vs. Observed Behavior Table (Based on Video Demo)
+
+| Test Case / Step | Physical Action in Video | Expected System Logic | Expected LED Status | Actual Observed Behavior in Video |
+| :--- | :--- | :--- | :--- | :--- |
+| **1. Idle / Released State** | Button is NOT pressed; Potentiometer knob untouched[cite: 4]. | `isEnabled = false`<br>`appliedDuty = 0` | Status LED: **OFF**<br>PWM LED: **OFF** | Both Red Status LED and Green PWM LED stay completely **OFF**[cite: 4]. |
+| **2. Holding Button (Initial Angle)** | Pressing and holding down the push button at top right[cite: 4]. | `isEnabled = true`<br>`appliedDuty = scaleToDuty(raw)` | Status LED: **ON**<br>PWM LED: **ON** | Red Status LED turns **ON** instantly; Green PWM LED lights up based on current knob position[cite: 4]. |
+| **3. Adjusting Brightness (Rotating Knob)** | Rotating the potentiometer knob while continuously holding the button[cite: 4]. | `isEnabled = true`<br>Duty cycle dynamically scales ($0 - 255$) | Status LED: **ON**<br>PWM LED: **Varies** | Red LED remains steadily **ON**; Green PWM LED smoothly changes brightness as knob turns[cite: 4]. |
+| **4. Safety Release (Interlock)** | Releasing the push button while leaving the knob in position[cite: 4]. | `isEnabled = false`<br>Forces `appliedDuty = 0` | Status LED: **OFF**<br>PWM LED: **OFF** | Both Red Status LED and Green PWM LED turn **OFF** immediately upon releasing the button[cite: 4]. |
 
 
 ## 📝 Conclusion
