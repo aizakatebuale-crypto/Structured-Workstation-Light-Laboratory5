@@ -58,6 +58,12 @@ An ESP32-based workstation light controller built using C++ and PlatformIO/Ardui
 | **5. Hold Button (High Position)**| Held (`true`) | Fully Clockwise | $4095$ | $255$ | Status LED ON; Dimming LED Full | Red LED ON; Green LED lit at 100% brightness. |
 | **6. Release Button Mid-Operation**| Released (`false`) | Kept at High Position | $4095$ | `0` | Both LEDs turn OFF instantly | Both Red and Green LEDs turn OFF immediately. |
 
+## Demonstration Documentation
+
+
+https://github.com/user-attachments/assets/e5ec5955-ee45-41bf-81e4-ad48b0a3af9e
+
+
 ## 📝 Conclusion
 
 Laboratory Activity 5 successfully demonstrated a safety-interlocked workstation light controller using modular ESP32 programming. By dividing the code into `readInputs()`, `processInputs()`, and `updateOutputs()`, the system maintains a clean and reliable logic flow. The active-LOW push button acts as an effective safety switch, forcing outputs to `0` when released, while the `scaleToDuty()` function accurately maps the 12-bit ADC potentiometer readings ($0\text{--}4095$) to an 8-bit PWM brightness level ($0\text{--}255$) when held.
