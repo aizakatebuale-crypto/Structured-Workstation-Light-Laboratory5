@@ -1,17 +1,19 @@
 #include <Arduino.h>
 
-const int BUTTON_PIN = 4;  
-const int POT_PIN    = 34;  
-const int LED_PIN    = 18;  
+const int BUTTON_PIN     = 4;   
+const int POT_PIN        = 34;  
+const int STATUS_LED_PIN = 2;  
+const int PWM_LED_PIN    = 18; 
+
+const int PWM_CHANNEL    = 0;
+const int PWM_FREQ       = 5000;
+const int PWM_RESOLUTION = 8;  
 
 
-const int PWM_FREQ       = 5000; 
-const int PWM_RESOLUTION = 8;    
-
-
-bool isEnabled   = false;
-int rawPotValue  = 0;
-int outputDuty   = 0;
+bool isEnabled    = false; 
+int rawPotValue   = 0;     
+int appliedDuty   = 0;    
+bool statusLedOn  = false; 
 
 
 int scaleToDuty(int raw) {
@@ -19,59 +21,64 @@ int scaleToDuty(int raw) {
   return map(clamped, 0, 4095, 0, 255);
 }
 
+
+
 void readInputs() {
  
-  isEnabled   = (digitalRead(BUTTON_PIN) == LOW);
+  isEnabled = (digitalRead(BUTTON_PIN) == LOW);
   rawPotValue = analogRead(POT_PIN);
 }
 
 
-void processLogic() {
+void processInputs() {
   if (isEnabled) {
-    outputDuty = scaleToDuty(rawPotValue);
+    statusLedOn = true;
+    appliedDuty = scaleToDuty(rawPotValue);
   } else {
-    
-    outputDuty = 0;
+    statusLedOn = false;
+    appliedDuty = 0;
   }
 }
 
 
-void writeOutputs() {
-  #if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3)
-    ledcWrite(LED_PIN, outputDuty);
-  #else
-    ledcWrite(0, outputDuty); 
-  #endif
+void updateOutputs() {
+
+  digitalWrite(STATUS_LED_PIN, statusLedOn ? HIGH : LOW);
+
+  ledcWrite(PWM_CHANNEL, appliedDuty);
 }
+
 
 void setup() {
   Serial.begin(115200);
 
+  
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 
+ 
+  pinMode(STATUS_LED_PIN, OUTPUT);
 
-  #if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3)
-    ledcAttach(LED_PIN, PWM_FREQ, PWM_RESOLUTION);
-  #else
-    ledcSetup(0, PWM_FREQ, PWM_RESOLUTION); 
-    ledcAttachPin(LED_PIN, 0);
-  #endif
+  
+  ledcSetup(PWM_CHANNEL, PWM_FREQ, PWM_RESOLUTION);
+  ledcAttachPin(PWM_LED_PIN, PWM_CHANNEL);
 
-  writeOutputs();
+  
+  updateOutputs();
 }
 
 void loop() {
   readInputs();
-  processLogic();
-  writeOutputs();
+  processInputs();
+  updateOutputs();
 
-
+ 
   Serial.print("Enabled: ");
   Serial.print(isEnabled ? "YES" : "NO");
-  Serial.print(" | Raw ADC: ");
+  Serial.print(" | ADC: ");
   Serial.print(rawPotValue);
-  Serial.print(" | Output Duty: ");
-  Serial.println(outputDuty);
+  Serial.print(" | Applied Duty: ");
+  Serial.println(appliedDuty);
 
+  // 20 ms loop pacing
   delay(20);
 }
